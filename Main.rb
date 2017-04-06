@@ -4,9 +4,9 @@ require 'twilio-ruby'
 
 puts("\n\n\n\nStarting up...")
  # Your Account SID from www.twilio.com/console
-account_sid = "AC3ef5925b6a0dc9c604471a3e5ac521a5"
+account_sid = ""
  # Your Auth Token from www.twilio.com/console
-auth_token = "86574bf2193ad221bee0ca1d593a40b3"  
+auth_token = ""
 
 get '/message' do
 

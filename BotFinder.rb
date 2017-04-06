@@ -4,8 +4,10 @@
 botKey = ARGV[0]
 
 if botKey == "aa"
-  puts("wiki.rb")
+  puts("suggestions.rb")
 elsif botKey == "ab"
+  puts("wiki.rb")
+elsif botKey == "ac"
   puts("urban_dic.rb")
 else
   puts("null")
