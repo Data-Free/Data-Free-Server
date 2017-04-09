@@ -35,21 +35,41 @@ get '/message' do
   
   #-----------------------------------------------------
   #  <Sends sms response to user>
-  #  loops through 
+
+  #send first text, notifying expected package size
+  size = output.length;
+  sms_message = "" + int_to_key(size) + " HEADER TEXT"
+  #send text
+    @client = Twilio::REST::Client.new account_sid, auth_token
+    message = @client.account.messages.create(:body => sms_message,
+       :to => "",    # Replace with your phone number "+15555555555"
+       :from => "")  # Replace with your Twilio number "+15555555555"
+  
+  #--------
+  #  loops through and prints response
   index = 0
-  max = output.length 
-  while(index<max)
+  while(index<size)
     # smsMessage = getKey(index)
     sms_message = int_to_key(index) + output[index] 
 
     #send text
     @client = Twilio::REST::Client.new account_sid, auth_token
     message = @client.account.messages.create(:body => sms_message,
-       :to => "+",    # Replace with your phone number "+15555555555"
+       :to => "",    # Replace with your phone number "+15555555555"
        :from => "")  # Replace with your Twilio number "+15555555555"
 
     index+=1
   end
+  #--------
+
+  #send final message so app knows sending should be finished
+  sleep(size+3)
+  sms_message = "!!END!!"
+    #send text
+    @client = Twilio::REST::Client.new account_sid, auth_token
+    message = @client.account.messages.create(:body => sms_message,
+       :to => "",    # Replace with your phone number "+15555555555"
+       :from => "")  # Replace with your Twilio number "+15555555555"
   #-----------------------------------------------------
  
 end

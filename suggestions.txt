@@ -24,3 +24,5 @@ bot that takes an image and sends back the ASCII version of it
 Snapple facts
 -
 tutorial/faq bot
+-
+Use the duck duck go instant answer api to fake Google answers
