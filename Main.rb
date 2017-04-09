@@ -37,7 +37,7 @@ get '/message' do
   #  <Sends sms response to user>
   #  loops through 
   index = 0
-  max = output.length + 1
+  max = output.length 
   while(index<max)
     # smsMessage = getKey(index)
     sms_message = int_to_key(index) + output[index] 
