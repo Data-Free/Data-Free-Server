@@ -4,3 +4,23 @@ Google maps!
 A decent dictionary app
 -
 cleverbot
+-
+Famous quotes
+-
+Update bot: when you contact it, it will send you all new bots native to the server. needs version control by date
+-
+local shops, menus, closing times
+-
+recommendmeabook.com
+-
+Uber?
+-
+recipes, maybe with the option of getting recipes based off the ingredients at hand
+-
+sports scores
+-
+bot that takes an image and sends back the ASCII version of it
+-
+Snapple facts
+-
+tutorial/faq bot

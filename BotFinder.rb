@@ -3,11 +3,16 @@
 #   aa < az < aA < aZ < Aa
 botKey = ARGV[0]
 
+#suggestions, updates
 if botKey == "aa"
-  puts("suggestions.rb")
+  puts("tutorial.rb")
 elsif botKey == "ab"
-  puts("wiki.rb")
+  puts("updates.rb")
 elsif botKey == "ac"
+  puts("suggestions.rb")
+elsif botKey == "ad"
+  puts("wiki.rb")
+elsif botKey == "ae"
   puts("urban_dic.rb")
 else
   puts("null")
