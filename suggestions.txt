@@ -28,3 +28,11 @@ tutorial/faq bot
 Use the duck duck go instant answer api to fake Google answers
 -
 Chat with the data free developers!
+-
+Hangman
+-
+niche college services? idk, seems a little, niche...
+-
+school calendar: when is the next break?
+-
+wayback machine?

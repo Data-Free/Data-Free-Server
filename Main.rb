@@ -2,11 +2,18 @@ require 'rubygems'
 require 'sinatra'
 require 'twilio-ruby'
 
-puts("\n\n\n\nStarting up...")
+require_relative 'HuffmanEncoder.rb' # encodes a word
+require_relative 'Encoder.rb' # uses Huffman Encoder to encode a string
+
+# ------------------------------------------------------------
+puts("\n\nStarting up...")
  # Your Account SID from www.twilio.com/console
 account_sid = ""
  # Your Auth Token from www.twilio.com/console
 auth_token = ""
+
+wordHash = HuffmanEncoder.getHash()
+# ------------------------------------------------------------
 
 get '/message' do
 
@@ -28,17 +35,18 @@ get '/message' do
   # Runs bot, result contains the bot's output
   result = %x{ruby bots/#{bot} #{body}}
 
-  #-----------------------------------------------------
-  #break answer into chunks for sms
-  output = result.scan(/.{1,#{100}}/)
+  encoded = Encoder.encode(result, wordHash)
+  #break answer into chunks to prepare for sms
+  output = encoded.scan(/.{1,#{150}}/)
   puts output
   
   #-----------------------------------------------------
   #  <Sends sms response to user>
+  #-----
 
-  #send first text, notifying expected package size
+  #send Header text, notifying expected package size
   size = output.length;
-  sms_message = "" + int_to_key(size) + " HEADER TEXT"
+  sms_message = "{" + int_to_key(size) + " HEADER TEXT"
   #send text
     @client = Twilio::REST::Client.new account_sid, auth_token
     message = @client.account.messages.create(:body => sms_message,
@@ -63,13 +71,13 @@ get '/message' do
   #--------
 
   #send final message so app knows sending should be finished
-  sleep(size+3)
-  sms_message = "!!END!!"
-    #send text
-    @client = Twilio::REST::Client.new account_sid, auth_token
-    message = @client.account.messages.create(:body => sms_message,
-       :to => "",    # Replace with your phone number "+15555555555"
-       :from => "")  # Replace with your Twilio number "+15555555555"
+  #sleep(size+3)
+  #sms_message = ""
+  #send text
+  #  @client = Twilio::REST::Client.new account_sid, auth_token
+  #  message = @client.account.messages.create(:body => sms_message,
+  #     :to => "",    # Replace with your phone number "+15555555555"
+  #     :from => "")  # Replace with your Twilio number "+15555555555"
   #-----------------------------------------------------
  
 end
