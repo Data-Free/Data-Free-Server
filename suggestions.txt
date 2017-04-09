@@ -26,3 +26,5 @@ Snapple facts
 tutorial/faq bot
 -
 Use the duck duck go instant answer api to fake Google answers
+-
+Chat with the data free developers!
