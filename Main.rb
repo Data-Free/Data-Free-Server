@@ -4,6 +4,8 @@ require 'twilio-ruby'
 
 require_relative 'HuffmanEncoder.rb' # encodes a word
 require_relative 'Encoder.rb' # uses Huffman Encoder to encode a string
+require_relative 'SeparateIntoTexts.rb' # use to separate encoded messages
+                                        # into properly sized texts
 
 # ------------------------------------------------------------
 puts("\n\nStarting up...")
@@ -18,27 +20,27 @@ wordHash = HuffmanEncoder.getHash()
 get '/message' do
 
   puts("\n\n\n\nrecieved\n")
-  
-  # store incoming sms text 
-  sms = params['Body']
 
-  #body = content of sms minus the botkey
-  body = sms[2..-1]
+  # Collect information from user text
+  sms = params['Body'] # store incoming sms text
+  body = sms[2..-1] # get content of request (minus botkey)
+  bot_key = sms[0,2] # get botkey
 
-  # bot_key = first two chars of sms
-  bot_key = sms[0,2]
-
-  # BotFinder uses botkey to return name of program to run
-  bot = %x{ruby BotFinder.rb #{bot_key}}
+  # Run Bot
+  bot = %x{ruby BotFinder.rb #{bot_key}} # returns name of program to run
   bot = bot.chomp
+  result = %x{ruby bots/#{bot} #{body}} # run bot
 
-  # Runs bot, result contains the bot's output
-  result = %x{ruby bots/#{bot} #{body}}
+  # prepare result for sms
+  encoded = Encoder.encode(result, wordHash) # encode it
+  #output = encoded.scan(/.{1,#{150}}/) # break it into proper size for sms
+  output = SeparateIntoTexts.separate(encoded, 150)
+  # replace ^ with Separator
 
-  encoded = Encoder.encode(result, wordHash)
-  #break answer into chunks to prepare for sms
-  output = encoded.scan(/.{1,#{150}}/)
-  puts output
+  # print to terminal
+  print_string(result)
+  print_string(output)
+ 
   
   #-----------------------------------------------------
   #  <Sends sms response to user>
@@ -82,6 +84,8 @@ get '/message' do
  
 end
 
+#---int_to_key------------------------------------------------------------
+
 #converts an int into base 26(a-z)
 def int_to_key(num)
   #10s digit = num/26
@@ -94,6 +98,13 @@ def int_to_key(num)
   return result
 end
 
+#---print-----------------------------------------------------------------
+
+def print_string(input)
+  puts("-------------------------------------------------------")
+  puts(input)
+  puts("-------------------------------------------------------")
+end
 #-------------------------------------------------------------------------
 =begin
 
