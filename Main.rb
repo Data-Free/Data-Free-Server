@@ -30,6 +30,7 @@ get '/message' do
   bot = %x{ruby BotFinder.rb #{bot_key}} # returns name of program to run
   bot = bot.chomp
   result = %x{ruby bots/#{bot} #{body}} # run bot
+  result = result.downcase
 
   # prepare result for sms
   encoded = Encoder.encode(result, wordHash) # encode it
