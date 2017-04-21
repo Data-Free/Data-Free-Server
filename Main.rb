@@ -22,6 +22,7 @@ get '/message' do
   puts("\n\n\n\nrecieved\n")
 
   # Collect information from user text
+  userNumber = params['From']
   sms = params['Body'] # store incoming sms text
   body = sms[2..-1] # get content of request (minus botkey)
   bot_key = sms[0,2] # get botkey
@@ -53,7 +54,7 @@ get '/message' do
   #send text
     @client = Twilio::REST::Client.new account_sid, auth_token
     message = @client.account.messages.create(:body => sms_message,
-       :to => "",    # Replace with your phone number "+15555555555"
+       :to => userNumber,
        :from => "")  # Replace with your Twilio number "+15555555555"
   
   #--------
@@ -66,7 +67,7 @@ get '/message' do
     #send text
     @client = Twilio::REST::Client.new account_sid, auth_token
     message = @client.account.messages.create(:body => sms_message,
-       :to => "",    # Replace with your phone number "+15555555555"
+       :to => userNumber,
        :from => "")  # Replace with your Twilio number "+15555555555"
 
     index+=1
