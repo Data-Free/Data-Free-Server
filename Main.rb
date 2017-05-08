@@ -6,69 +6,69 @@ require_relative 'HuffmanEncoder.rb' # encodes a word
 require_relative 'Encoder.rb' # uses Huffman Encoder to encode a string
 require_relative 'SeparateIntoTexts.rb' # prepares huffman to send
 
-# ------------------------------------------------------------
+#------main--------------------------------------------------------------
+
 def main()
   puts("\n\nStarting up...")
 
-  # set up account info
+  #-------------------------
+  # SET UP INFO
+  #-------------------------
   account_sid = ""
   auth_token = ""
   twilio_number = ""
   account_sid, auth_token, twilio_number = get_info()
   
-  wordHash = HuffmanEncoder.getHash()
-  # ------------------------------------------------------------
-  
+  wordHash = HuffmanEncoder.getHash() # create list of words
+
+
   get '/message' do
-    
+
+    #----------------------------
+    # PREPARE TEXT RESPONSE
+    #----------------------------
     puts("\n\n\n\nrecieved\n")
     
-    # Collect information from user text
+    # 1) Collect information from user text
     user_number = params['From']
     sms = params['Body'] # store incoming sms text
     body = sms[2..-1] # get content of request (minus botkey)
     bot_key = sms[0,2] # get botkey
     
-    # Run Bot
-    bot = %x{ruby BotFinder.rb #{bot_key}} # returns name of program to run
-    bot = bot.chomp
-    result = %x{ruby bots/#{bot} #{body}} # run bot
-    result = result.downcase
+    # 2) Run Bot
+    # Gets bot name, and then runs bot from command line
+    bot = %x{ruby BotFinder.rb #{bot_key}}.chomp
+    result = %x{ruby bots/#{bot} #{body}}.downcase 
     
-    # prepare result for sms
+    # 3) prepare result for sms
     encoded = Encoder.encode(result, wordHash) # encode it
     output = SeparateIntoTexts.separate(encoded, 150)
   
     # print to terminal
     print_string(result)
     print_string(output)
+       
+    #----------------------------
+    # SEND TEXT TO USER
+    #----------------------------
     
-    
-    #-----------------------------------------------------
-    #  <Sends sms response to user>
-    #-----
-    
-    #send Header text, notifying expected package size
+    # 1) Send Header Texts
     size = output.length;
     sms_message = "{" + int_to_key(size) + " HEADER TEXT"
-    #send text
+    
     send_text(account_sid, auth_token, sms_message,
               user_number, twilio_number)
     
-    #--------
-    #  loops through and prints response
+    # 2) Send Content Texts
     index = 0
     while(index<size)
-      # smsMessage = getKey(index)
       sms_message = int_to_key(index) + output[index] 
-      
-      #send text
+            
       send_text(account_sid, auth_token, sms_message,
               user_number, twilio_number)
       index+=1
     end
-    #-----------------------------------------------------
-    
+       
   end
 end
 
@@ -97,9 +97,6 @@ end
 #---get_info-------------------------------------------------------------
 
 # Sets up account information from a text file
-# line 1 of text file will have account_sid from twilio
-# line 2 of text file will have authentication token from twilio
-# line 3 of text file will have twilio phone number
 def get_info()
   info = Array.new
   
@@ -126,27 +123,7 @@ def send_text(account_sid, auth_token, sms_message,
                                             :from => twilio_number)
 end
 
-#------------------------------------------------------------------------
+#---RUN------------------------------------------------------------------
+
 main()
 
-=begin
-
----------------
-Variables
----------------
-Receiving User Request
- - sms: String containing message from the user
-        formatted as botKey + body
- - body: String with user's request
- - bot_key: 2 char String with key identifying which bot user wants
-           The DataFree app automatically adds this key to beginning of sms
-
-Retreiving the Answer
- - result: String that bot outputs
- - output: Array - result, broken into chunks that can be sent in one text
-
-Sending the Answer
- - index: int, increments through all Strings in output
- - max: int, size limit of output
- - sms_message: String, stores the String at output[index] to send to user
-=end
