@@ -52,10 +52,8 @@ def main()
     size = output.length;
     sms_message = "{" + int_to_key(size) + " HEADER TEXT"
     #send text
-    @client = Twilio::REST::Client.new account_sid, auth_token
-    message = @client.account.messages.create(:body => sms_message,
-                                              :to => user_number,
-                                              :from => twilio_number) # Replace with your Twilio number "+15555555555"
+    send_text(account_sid, auth_token, sms_message,
+              user_number, twilio_number)
     
     #--------
     #  loops through and prints response
@@ -65,11 +63,8 @@ def main()
       sms_message = int_to_key(index) + output[index] 
       
       #send text
-      @client = Twilio::REST::Client.new account_sid, auth_token
-      message = @client.account.messages.create(:body => sms_message,
-                                                :to => user_number,
-                                                :from => twilio_number)  # Replace with your Twilio number "+15555555555"
-      
+      send_text(account_sid, auth_token, sms_message,
+              user_number, twilio_number)
       index+=1
     end
     #-----------------------------------------------------
@@ -112,11 +107,23 @@ def get_info()
     info.push(line.chomp())
   end
 
-  account_sid = info[0]
+  account_sid = info[0] 
   auth_token = info[1]
   twilio_number = info[2]
 
   return account_sid, auth_token, twilio_number
+end
+
+#---send_text------------------------------------------------------------
+
+# sends text
+def send_text(account_sid, auth_token, sms_message,
+              user_number, twilio_number)
+  
+  @client = Twilio::REST::Client.new account_sid, auth_token
+  message = @client.account.messages.create(:body => sms_message,
+                                            :to => user_number,
+                                            :from => twilio_number)
 end
 
 #------------------------------------------------------------------------
