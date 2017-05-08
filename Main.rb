@@ -4,86 +4,77 @@ require 'twilio-ruby'
 
 require_relative 'HuffmanEncoder.rb' # encodes a word
 require_relative 'Encoder.rb' # uses Huffman Encoder to encode a string
-require_relative 'SeparateIntoTexts.rb' # use to separate encoded messages
-                                        # into properly sized texts
+require_relative 'SeparateIntoTexts.rb' # prepares huffman to send
 
 # ------------------------------------------------------------
-puts("\n\nStarting up...")
- # Your Account SID from www.twilio.com/console
-account_sid = ""
- # Your Auth Token from www.twilio.com/console
-auth_token = ""
+def main()
+  puts("\n\nStarting up...")
 
-wordHash = HuffmanEncoder.getHash()
-# ------------------------------------------------------------
-
-get '/message' do
-
-  puts("\n\n\n\nrecieved\n")
-
-  # Collect information from user text
-  userNumber = params['From']
-  sms = params['Body'] # store incoming sms text
-  body = sms[2..-1] # get content of request (minus botkey)
-  bot_key = sms[0,2] # get botkey
-
-  # Run Bot
-  bot = %x{ruby BotFinder.rb #{bot_key}} # returns name of program to run
-  bot = bot.chomp
-  result = %x{ruby bots/#{bot} #{body}} # run bot
-  result = result.downcase
-
-  # prepare result for sms
-  encoded = Encoder.encode(result, wordHash) # encode it
-  #output = encoded.scan(/.{1,#{150}}/) # break it into proper size for sms
-  output = SeparateIntoTexts.separate(encoded, 150)
-  # replace ^ with Separator
-
-  # print to terminal
-  print_string(result)
-  print_string(output)
- 
+  # set up account info
+  account_sid = ""
+  auth_token = ""
+  twilio_number = ""
+  account_sid, auth_token, twilio_number = get_info()
   
-  #-----------------------------------------------------
-  #  <Sends sms response to user>
-  #-----
-
-  #send Header text, notifying expected package size
-  size = output.length;
-  sms_message = "{" + int_to_key(size) + " HEADER TEXT"
-  #send text
-    @client = Twilio::REST::Client.new account_sid, auth_token
-    message = @client.account.messages.create(:body => sms_message,
-       :to => userNumber,
-       :from => "")  # Replace with your Twilio number "+15555555555"
+  wordHash = HuffmanEncoder.getHash()
+  # ------------------------------------------------------------
   
-  #--------
-  #  loops through and prints response
-  index = 0
-  while(index<size)
-    # smsMessage = getKey(index)
-    sms_message = int_to_key(index) + output[index] 
-
+  get '/message' do
+    
+    puts("\n\n\n\nrecieved\n")
+    
+    # Collect information from user text
+    user_number = params['From']
+    sms = params['Body'] # store incoming sms text
+    body = sms[2..-1] # get content of request (minus botkey)
+    bot_key = sms[0,2] # get botkey
+    
+    # Run Bot
+    bot = %x{ruby BotFinder.rb #{bot_key}} # returns name of program to run
+    bot = bot.chomp
+    result = %x{ruby bots/#{bot} #{body}} # run bot
+    result = result.downcase
+    
+    # prepare result for sms
+    encoded = Encoder.encode(result, wordHash) # encode it
+    output = SeparateIntoTexts.separate(encoded, 150)
+  
+    # print to terminal
+    print_string(result)
+    print_string(output)
+    
+    
+    #-----------------------------------------------------
+    #  <Sends sms response to user>
+    #-----
+    
+    #send Header text, notifying expected package size
+    size = output.length;
+    sms_message = "{" + int_to_key(size) + " HEADER TEXT"
     #send text
     @client = Twilio::REST::Client.new account_sid, auth_token
     message = @client.account.messages.create(:body => sms_message,
-       :to => userNumber,
-       :from => "")  # Replace with your Twilio number "+15555555555"
-
-    index+=1
+                                              :to => user_number,
+                                              :from => twilio_number) # Replace with your Twilio number "+15555555555"
+    
+    #--------
+    #  loops through and prints response
+    index = 0
+    while(index<size)
+      # smsMessage = getKey(index)
+      sms_message = int_to_key(index) + output[index] 
+      
+      #send text
+      @client = Twilio::REST::Client.new account_sid, auth_token
+      message = @client.account.messages.create(:body => sms_message,
+                                                :to => user_number,
+                                                :from => twilio_number)  # Replace with your Twilio number "+15555555555"
+      
+      index+=1
+    end
+    #-----------------------------------------------------
+    
   end
-  #--------
-
-  #send final message so app knows sending should be finished
-  #sleep(size+3)
-  #sms_message = ""
-  #send text
-  #  @client = Twilio::REST::Client.new account_sid, auth_token
-  #  message = @client.account.messages.create(:body => sms_message,
-  #     :to => "",    # Replace with your phone number "+15555555555"
-  #     :from => "")  # Replace with your Twilio number "+15555555555"
-  #-----------------------------------------------------
- 
 end
 
 #---int_to_key------------------------------------------------------------
@@ -100,14 +91,37 @@ def int_to_key(num)
   return result
 end
 
-#---print-----------------------------------------------------------------
+#---print----------------------------------------------------------------
 
 def print_string(input)
   puts("-------------------------------------------------------")
   puts(input)
   puts("-------------------------------------------------------")
 end
-#-------------------------------------------------------------------------
+
+#---get_info-------------------------------------------------------------
+
+# Sets up account information from a text file
+# line 1 of text file will have account_sid from twilio
+# line 2 of text file will have authentication token from twilio
+# line 3 of text file will have twilio phone number
+def get_info()
+  info = Array.new
+  
+  File.readlines('TwilioAccountInfo').each do |line|
+    info.push(line.chomp())
+  end
+
+  account_sid = info[0]
+  auth_token = info[1]
+  twilio_number = info[2]
+
+  return account_sid, auth_token, twilio_number
+end
+
+#------------------------------------------------------------------------
+main()
+
 =begin
 
 ---------------
