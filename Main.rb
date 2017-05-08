@@ -1,3 +1,5 @@
+# Data Free Server
+
 require 'rubygems'
 require 'sinatra'
 require 'twilio-ruby'
@@ -6,7 +8,7 @@ require_relative 'HuffmanEncoder.rb' # encodes a word
 require_relative 'Encoder.rb' # uses Huffman Encoder to encode a string
 require_relative 'SeparateIntoTexts.rb' # prepares huffman to send
 
-#------main--------------------------------------------------------------
+#---main-----------------------------------------------------------------
 
 def main()
   puts("\n\nStarting up...")
@@ -14,14 +16,10 @@ def main()
   #-------------------------
   # SET UP INFO
   #-------------------------
-  account_sid = ""
-  auth_token = ""
-  twilio_number = ""
-  account_sid, auth_token, twilio_number = get_info()
+  account_sid, auth_token, twilio_number = get_info() # twilio stuff
+  wordHash = HuffmanEncoder.getHash() # list of words to encode with
+
   
-  wordHash = HuffmanEncoder.getHash() # create list of words
-
-
   get '/message' do
 
     #----------------------------
