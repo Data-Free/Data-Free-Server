@@ -16,7 +16,8 @@ def main()
   #-------------------------
   # SET UP INFO
   #-------------------------
-  account_sid, auth_token, twilio_number = get_info() # twilio stuff
+  # set up twilio info
+  account_sid, auth_token, twilio_number = get_account_info()
   wordHash = HuffmanEncoder.getHash() # list of words to encode with
 
   
@@ -30,43 +31,51 @@ def main()
     # 1) Collect information from user text
     user_number = params['From']
     sms = params['Body'] # store incoming sms text
-    body = sms[2..-1] # get content of request (minus botkey)
-    bot_key = sms[0,2] # get botkey
-    
+    declaration, bot_key, bot_case, instance, content_request =
+                                             get_request_info(sms)
+  
     # 2) Run Bot
     # Gets bot name, and then runs bot from command line
     bot = %x{ruby BotFinder.rb #{bot_key}}.chomp
-    result = %x{ruby bots/#{bot} #{body}}.downcase 
+    result = %x{ruby bots/#{bot} #{content_request}}.downcase 
     
     # 3) prepare result for sms
     encoded = Encoder.encode(result, wordHash) # encode it
-    output = SeparateIntoTexts.separate(encoded, 150)
+    output = SeparateIntoTexts.separate(encoded, 150) # split it
   
     # print to terminal
     print_string(result)
+    printf("packages expected: %d\n", output.length)
     print_string(output)
+    # print packages expected: 
        
     #----------------------------
     # SEND TEXT TO USER
     #----------------------------
+    size = output.length
     
-    # 1) Send Header Texts
-    size = output.length;
-    sms_message = "{" + int_to_key(size) + " HEADER TEXT"
-    
-    send_text(account_sid, auth_token, sms_message,
-              user_number, twilio_number)
-    
-    # 2) Send Content Texts
-    index = 0
-    while(index<size)
-      sms_message = int_to_key(index) + output[index] 
-            
+    if(declaration)
+      # Send Declaration Text
+      # { + bot_key + request + instance + size 
+      size = output.length
+      sms_message = "{" + bot_key + bot_case +
+                    instance + int_to_key(size) + content_request
+      
       send_text(account_sid, auth_token, sms_message,
-              user_number, twilio_number)
-      index+=1
+                user_number, twilio_number)
+    else
+      # Send Content Texts
+      # instance + index + content
+      index = 0
+      while(index<size)
+        sms_message = instance + int_to_key(index) + output[index] 
+        
+        send_text(account_sid, auth_token, sms_message,
+                  user_number, twilio_number)
+        index+=1
+      end
     end
-       
+    
   end
 end
 
@@ -92,10 +101,10 @@ def print_string(input)
   puts("-------------------------------------------------------")
 end
 
-#---get_info-------------------------------------------------------------
+#---get_account_info-----------------------------------------------------
 
 # Sets up account information from a text file
-def get_info()
+def get_account_info()
   info = Array.new
   
   File.readlines('TwilioAccountInfo').each do |line|
@@ -107,6 +116,31 @@ def get_info()
   twilio_number = info[2]
 
   return account_sid, auth_token, twilio_number
+end
+
+#---get_request_info-----------------------------------------------------------
+
+# parses incoming text and extracts relevant info
+def get_request_info(message)
+
+  # check if a declaration
+  if(message[0] == '{')
+    # { BK R I ...
+    declaration = true
+    bot_key = message[1..2]
+    request = message[3]
+    instance = message[4]
+    content_request = message[5..-1]
+  else
+    # else: BK R I ...
+    declaration = false
+    bot_key = message[0..1]
+    request = message[2]
+    instance = message[3]
+    content_request = message[4..-1]
+  end
+
+  return declaration, bot_key, request, instance, content_request
 end
 
 #---send_text------------------------------------------------------------
