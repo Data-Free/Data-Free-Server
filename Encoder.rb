@@ -157,13 +157,45 @@ module Encoder
 
   #---------------------------------
 
-  # return substring of word from last letter on
+    # return substring of word from last letter on
   def self.getPostPunctuation(word)
     
     lastLetter = findLastLetter(word) + 1
-    return word[lastLetter..(word.size-1)]
+    punctuation =  word[lastLetter..(word.size-1)]
+    punctuation = correctForNumbers(punctuation)
+    return punctuation
   end
 
+  #---------------------------------
+  
+  # slap a zero in front of first number in punctuation
+  # mid-2005 should result in "nP-02005 ", not "nP-2005"
+  def self.correctForNumbers(punctuation)
+    result = ""
+  
+    foundNum = false
+    punctuation.split("").each do |char|
+      if(isNumber(char) && !foundNum)
+        foundNum = true
+        result += "0"
+      end
+      result += char
+    end
+    
+    if(foundNum)
+      result += " "
+    end
+    
+    return result
+  end
+
+  #---------------------------------
+  
+  # returns true if input is a 0-9
+  def self.isNumber(char)
+    return (char.ord >= 48 && char.ord <= 57)
+  end
+  
   #----------------------------------
 
   def self.getPrePunctuation(word)
