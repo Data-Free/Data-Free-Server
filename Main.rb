@@ -31,7 +31,7 @@ def main()
     # 1) Collect information from user text
     user_number = params['From']
     sms = params['Body'] # store incoming sms text
-    declaration, bot_key, bot_case, instance, content_request =
+    declaration, bot_key, bot_case, packageSlot, content_request =
                                              get_request_info(sms)
   
     # 2) Run Bot
@@ -45,7 +45,7 @@ def main()
   
     # print to terminal
     print_string(result)
-    printf("packages expected: %d\n", output.length)
+    printf("packages size: %d\npackageSlot: %d\n", output.length, packageSlot)
     print_string(output)
     # print packages expected: 
        
@@ -56,19 +56,19 @@ def main()
     
     if(declaration)
       # Send Declaration Text
-      # { + bot_key + request + instance + size 
+      # { + bot_key + request + packageSlot + size 
       size = output.length
       sms_message = "{" + bot_key + bot_case +
-                    instance + int_to_key(size) + content_request
+                    packageSlot + int_to_key(size) + content_request
       
       send_text(account_sid, auth_token, sms_message,
                 user_number, twilio_number)
     else
       # Send Content Texts
-      # instance + index + content
+      # packageSlot + index + content
       index = 0
       while(index<size)
-        sms_message = instance + int_to_key(index) + output[index] 
+        sms_message = packageSlot + int_to_key(index) + output[index] 
         
         send_text(account_sid, auth_token, sms_message,
                   user_number, twilio_number)
